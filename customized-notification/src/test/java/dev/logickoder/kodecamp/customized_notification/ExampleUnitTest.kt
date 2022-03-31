@@ -1,4 +1,4 @@
-package dev.logickoder.kodecamp
+package dev.logickoder.kodecamp.customized_notification
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

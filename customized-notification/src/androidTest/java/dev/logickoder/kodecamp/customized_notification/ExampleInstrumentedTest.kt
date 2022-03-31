@@ -1,4 +1,4 @@
-package dev.logickoder.kodecamp
+package dev.logickoder.kodecamp.customized_notification
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
