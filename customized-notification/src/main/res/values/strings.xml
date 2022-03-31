@@ -1,5 +1,11 @@
 <resources>
-    <string name="app_name">KodeCamp</string>
+    <string name="app_name">KodeCamp Customized Notification</string>
     <string name="button_text">Click</string>
     <string name="subtitle">to summon a notification from nothingness</string>
+
+    <string name="notification_title">KodeCamp Notification</string>
+    <string name="notification_text">
+        this notification was summoned from the depths of android components,
+        handle with care or face the consequences.
+    </string>
 </resources>
