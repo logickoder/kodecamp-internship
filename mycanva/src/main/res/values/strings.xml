@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MyCanva</string>
+    <string name="content_description">MyCanva is a demo app to show drawings</string>
+</resources>

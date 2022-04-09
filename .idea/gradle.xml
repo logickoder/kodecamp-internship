@@ -12,6 +12,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/customized-notification" />
+            <option value="$PROJECT_DIR$/mycanva" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
