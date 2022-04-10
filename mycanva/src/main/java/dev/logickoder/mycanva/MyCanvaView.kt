@@ -1,112 +1,130 @@
 package dev.logickoder.mycanva
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Path
-import android.graphics.Rect
+import android.graphics.*
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import androidx.core.content.res.ResourcesCompat
-import kotlin.math.abs
-
-private const val STROKE_WIDTH = 12f
+import kotlin.math.absoluteValue
 
 class MyCanvaView(context: Context) : View(context) {
     private lateinit var frame: Rect
 
-    private var motionTouchEventX = 0f
-    private var motionTouchEventY = 0f
+    private val color: Int = Color.BLACK
+    private val strokeWidth: Float = 12f
     private val touchTolerance = ViewConfiguration.get(context).scaledTouchSlop
 
-    private var currentX = 0f
-    private var currentY = 0f
+    private var inFrame = false
 
-    private val bgColor = ResourcesCompat.getColor(resources, R.color.white, null)
-    private val drawColor = ResourcesCompat.getColor(resources, R.color.black, null)
+    private var motion = 0f to 0f
+    private var point = 0f to 0f
 
-    private var path = Path()
-
-    private val drawing = Path()
-
-    private val paint = Paint().apply {
-        color = drawColor
+    // the paint class encapsulates the color amd style information
+    // about how to draw the geometrics.text and bitmaps
+    private val paint: Paint = Paint().apply {
         isAntiAlias = true
         isDither = true
+        color = this@MyCanvaView.color
+        strokeWidth = this@MyCanvaView.strokeWidth
         style = Paint.Style.STROKE
         strokeJoin = Paint.Join.ROUND
         strokeCap = Paint.Cap.ROUND
-        strokeWidth = STROKE_WIDTH
+        alpha = 0xff
     }
+    private val bitmapPaint = Paint(Paint.DITHER_FLAG)
+
+    // list to store all the strokes drawn by the user on the canvas
+    private val paths = mutableListOf<Path>()
+    private var currentPath = Path()
+
+    private var bitmap: Bitmap? = null
+    private var drawingCanvas: Canvas? = null
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         //create a rectangular frame around the drawing
         val inset = 50
         frame = Rect(inset, inset * 2, w - inset, h - inset * 2)
+        bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also {
+            drawingCanvas = Canvas(it)
+        }
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-//        canvas?.drawBitmap(extraBitmap, 0f, 0f, null)
-        canvas?.run {
-            drawColor(bgColor)
-            drawPath(drawing, paint)
-            drawPath(path, paint)
+        if (canvas == null) return
+        // save the current state of the canvas before, to draw the background of the canvas
+        canvas.save()
+        drawingCanvas?.run {
+            // default color of the canvas
+            drawColor(Color.WHITE)
+            // iterate over each stroke and draw it on the canvas
+            paths.forEach { path ->
+                drawPath(path, paint)
+            }
+            // draw frame
             drawRect(frame, paint)
         }
+        bitmap?.let { canvas.drawBitmap(it, 0f, 0f, bitmapPaint) }
+        canvas.restore()
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (event != null) {
-            motionTouchEventX = event.x
-            motionTouchEventY = event.y
+    // the below methods manages the touch response of the user on the screen
+    private fun touchStart(x: Float, y: Float) {
+        // save the current coordinates of the finger
+        currentPath = Path().apply {
+            reset()
+            moveTo(x, y)
         }
+        paths += currentPath
+        point = x to y
+    }
 
-        when (event?.action) {
-            MotionEvent.ACTION_DOWN -> touchStart()
-            MotionEvent.ACTION_MOVE -> if (inFrame()) touchMove()
-            MotionEvent.ACTION_UP -> touchUp()
+    private fun touchMove(x: Float, y: Float) = with(point) {
+        if (!inFrame) {
+            inFrame = true
+            touchStart(x, y)
+        } else {
+            val dx = (x - first).absoluteValue
+            val dy = (y - second).absoluteValue
+
+            if (dx >= touchTolerance || dy >= touchTolerance) {
+                currentPath.quadTo(first, second, (first + x) / 2, (second + y) / 2)
+                point = x to y
+            }
         }
-        invalidate()
-
-        return true
     }
 
     private fun touchUp() {
-        drawing.addPath(path)
-        path.reset()
+        currentPath.lineTo(point.first, point.second)
     }
 
-    private fun touchMove() {
-        val dx = abs(motionTouchEventX - currentX)
-        val dy = abs(motionTouchEventY - currentY)
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (event == null) return false
+        val x = event.x
+        val y = event.y
+        motion = x to y
 
-        if (dx >= touchTolerance || dy >= touchTolerance) {
-            path.quadTo(
-                currentX,
-                currentY,
-                (motionTouchEventX + currentX) / 2,
-                (motionTouchEventY + currentY) / 2
-            )
-            currentX = motionTouchEventX
-            currentY = motionTouchEventY
+        if (inFrame()) {
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> touchStart(x, y)
+                MotionEvent.ACTION_MOVE -> touchMove(x, y)
+                MotionEvent.ACTION_UP -> touchUp()
+            }
+            invalidate()
+        } else {
+            inFrame = false
         }
-    }
-
-    private fun touchStart() {
-        path.reset()
-        path.moveTo(motionTouchEventX, motionTouchEventY)
-        currentX = motionTouchEventX
-        currentY = motionTouchEventY
+        return true
     }
 
     /**
      * True if the current stroke is in drawing frame
      */
-    private fun inFrame(): Boolean {
-        return motionTouchEventX.let { it > frame.left && it < frame.right } &&
-                motionTouchEventY.let { it > frame.top && it < frame.bottom }
+    private fun inFrame(): Boolean = with(motion) {
+        first.let { it > frame.left + strokeWidth && it < frame.right - strokeWidth } &&
+                second.let { it > frame.top + strokeWidth && it < frame.bottom - strokeWidth }
     }
 }
