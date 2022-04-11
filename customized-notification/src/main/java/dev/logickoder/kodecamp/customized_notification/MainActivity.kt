@@ -39,7 +39,6 @@ class MainActivity : ComponentActivity() {
 fun MainContent() {
     Column(modifier = Modifier.fillMaxSize()) {
         var action: Action? by remember { mutableStateOf(null) }
-        var color by remember { mutableStateOf(Color.Gray) }
         val stars = remember { mutableStateListOf<Star>() }
 
         BoxWithConstraints {
@@ -59,14 +58,14 @@ fun MainContent() {
         }
         StarContainer(
             action,
+            onActionDone = { action = null },
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .background(color),
-            onColorChange = { color = it },
+                .background(Color.Gray),
             stars = stars,
             onStarsChange = {
-                stars.removeIf { true }
+                stars.removeAll { true }
                 stars.addAll(it)
             }
         )

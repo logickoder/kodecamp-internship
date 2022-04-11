@@ -1,8 +1,8 @@
 package dev.logickoder.kodecamp.customized_notification.ui.components
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,7 +16,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val Duration = 1000
@@ -25,63 +24,71 @@ typealias Star = Pair<Animatable<Float, AnimationVector1D>, Animatable<Float, An
 @Composable
 fun StarContainer(
     action: Action?,
+    onActionDone: (Action) -> Unit,
     modifier: Modifier = Modifier,
-    onColorChange: (Color) -> Unit,
     stars: List<Star>,
     onStarsChange: (List<Star>) -> Unit,
 ) = Box(
     modifier = modifier,
     contentAlignment = Alignment.Center,
 ) {
+    val spec = remember {
+        tween<Float>(Duration, easing = LinearEasing)
+    }
     val scope = rememberCoroutineScope()
+
     when (action) {
         Action.Rotate -> {
-            val angle = remember { Animatable(0f) }
+            val startValue = 0f
+            val angle = remember { Animatable(startValue) }
             LaunchedEffect(key1 = Unit) {
-                delay(Duration.toLong())
-                angle.animateTo(360f)
+                angle.animateTo(360f, spec)
+                angle.animateTo(startValue, spec)
+                onActionDone(action)
             }
             Star(Modifier.rotate(angle.value))
         }
         Action.Translate -> {
-            val offset = remember { Animatable(0f) }
+            val startValue = 0f
+            val offset = remember { Animatable(startValue) }
             LaunchedEffect(key1 = Unit) {
-                delay(Duration.toLong())
-                offset.animateTo(25.dp.value)
+                offset.animateTo(50.dp.value, spec)
+                offset.animateTo(startValue, spec)
+                onActionDone(action)
             }
             Star(Modifier.offset(offset.value.dp, 0.dp))
         }
         Action.Scale -> {
-            val scale = remember { Animatable(1f) }
+            val startValue = 1f
+            val scale = remember { Animatable(startValue) }
             LaunchedEffect(key1 = Unit) {
-                delay(Duration.toLong())
-                scale.animateTo(3f)
+                scale.animateTo(3f, spec)
+                scale.animateTo(startValue, spec)
+                onActionDone(action)
             }
             Star(Modifier.scale(scale.value))
         }
         Action.Fade -> {
-            val fade = remember { Animatable(1f) }
+            val startValue = 1f
+            val fade = remember { Animatable(startValue) }
             LaunchedEffect(key1 = Unit) {
-                delay(Duration.toLong())
-                fade.animateTo(0f)
+                fade.animateTo(0f, spec)
+                fade.animateTo(startValue, spec)
+                onActionDone(action)
             }
             Star(Modifier.alpha(fade.value))
         }
         Action.SkyColor -> {
-            val color = remember { Animatable(0f) }
+            val startColor = Color.Black
+            val color = remember { Animatable(startColor) }
             LaunchedEffect(key1 = Unit) {
-                delay(Duration.toLong())
-                color.animateTo(1f)
-                delay(Duration.toLong())
-                color.animateTo(2f)
+                color.animateTo(Color.Green, spec as TweenSpec<Color>)
+                color.animateTo(startColor, spec as TweenSpec<Color>)
+                onActionDone(action)
             }
-            onColorChange(
-                when(color.value) {
-                    0f -> Color.Black
-                    1f -> Color.Green
-                    else -> Color.Gray
-                }
-            )
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .background(color.value))
             Star()
         }
         Action.Shower -> {
@@ -93,7 +100,7 @@ fun StarContainer(
                         scope.launch {
                             loc.second.animateTo(
                                 maxHeight.value,
-                                tween(Duration * 4)
+                                tween(Duration * 3, easing = LinearEasing)
                             )
                         }
                     }
