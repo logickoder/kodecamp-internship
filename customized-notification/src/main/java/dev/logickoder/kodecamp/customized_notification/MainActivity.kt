@@ -3,19 +3,19 @@ package dev.logickoder.kodecamp.customized_notification
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
+import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import dev.logickoder.kodecamp.customized_notification.ui.components.*
 import dev.logickoder.kodecamp.customized_notification.ui.theme.KodeCampTheme
 
 class MainActivity : ComponentActivity() {
@@ -37,27 +37,40 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent() {
-    val context = LocalContext.current
+    Column(modifier = Modifier.fillMaxSize()) {
+        var action: Action? by remember { mutableStateOf(null) }
+        var color by remember { mutableStateOf(Color.Gray) }
+        val stars = remember { mutableStateListOf<Star>() }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Button(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.large),
-            onClick = { context.createNotification() }
-        ) {
-            Text(
-                text = stringResource(id = R.string.button_text)
+        BoxWithConstraints {
+            AnimateActionButtons(
+                currentAction = action,
+                modifier = Modifier.fillMaxWidth(),
+                onActionChange = {
+                    action = it
+                    if (it == Action.Shower) {
+                        stars.add(
+                            Animatable(Math.random().toFloat() * maxWidth.value) to
+                                    Animatable(0f)
+                        )
+                    }
+                }
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(id = R.string.subtitle),
-            style = MaterialTheme.typography.caption
+        StarContainer(
+            action,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .background(color),
+            onColorChange = { color = it },
+            stars = stars,
+            onStarsChange = {
+                stars.removeIf { true }
+                stars.addAll(it)
+            }
         )
+        NotificationButton(modifier = Modifier.fillMaxWidth())
     }
 }
 
