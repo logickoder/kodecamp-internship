@@ -2,8 +2,10 @@
 
 A repo housing simple tasks given by mentors during KodeCamp Internship
 
-## Task I - Customized Notification
-A simple app showing a button that when clicked brings up a notification
+## Task I & III- Customized Notification
+A simple app showing a button that when clicked brings up a notification and a bunch of buttons that
+when clicked plays animations
+
 ### Screenshots
 ![customized-notification](./screenshots/customized-notification.png)
 
