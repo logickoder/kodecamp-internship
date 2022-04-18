@@ -32,7 +32,7 @@ fun AnimateActionButtons(
                 Button(
                     colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary),
                     onClick = { onActionChange(action) },
-                    enabled = currentAction != action,
+                    enabled = currentAction == Action.Shower || currentAction != action,
                 ) {
                     val name = StringBuilder(action.name.length)
                     action.name.forEach { char ->

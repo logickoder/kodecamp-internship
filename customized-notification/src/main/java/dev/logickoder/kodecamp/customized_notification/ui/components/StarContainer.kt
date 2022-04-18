@@ -1,25 +1,27 @@
 package dev.logickoder.kodecamp.customized_notification.ui.components
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.absoluteOffset
-import androidx.compose.foundation.layout.offset
-import androidx.compose.runtime.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val Duration = 1000
 typealias Star = Pair<Animatable<Float, AnimationVector1D>, Animatable<Float, AnimationVector1D>>
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun StarContainer(
     action: Action?,
@@ -27,11 +29,12 @@ fun StarContainer(
     onColorChange: (Color) -> Unit,
     stars: List<Star>,
     onStarsChange: (List<Star>) -> Unit,
-) = BoxWithConstraints(
+) = Box(
     modifier = modifier,
     contentAlignment = Alignment.Center,
 ) {
-    when(action) {
+    val scope = rememberCoroutineScope()
+    when (action) {
         Action.Rotate -> {
             val angle = remember { Animatable(0f) }
             LaunchedEffect(key1 = Unit) {
@@ -82,18 +85,29 @@ fun StarContainer(
             Star()
         }
         Action.Shower -> {
-            LaunchedEffect(Unit) {
-                stars.forEach {
-                    it.second.animateTo(10.dp.value)
+            BoxWithConstraints(modifier = Modifier
+                .clipToBounds()
+                .fillMaxSize()) {
+                for (loc in stars) {
+                    LaunchedEffect(Unit) {
+                        scope.launch {
+                            loc.second.animateTo(
+                                maxHeight.value,
+                                tween(Duration * 4)
+                            )
+                        }
+                    }
+                    Star(
+                        modifier = Modifier.absoluteOffset(
+                            loc.first.value.dp,
+                            loc.second.value.dp
+                        )
+                    )
                 }
-                delay(Duration.toLong())
-            }
-            stars.forEach { loc ->
-                Star(modifier = Modifier.absoluteOffset(loc.first.value.dp, loc.second.value.dp))
-            }
-            val containedStars = stars.filter { it.second.value < maxHeight.value }
-            if (containedStars.size < stars.size) {
-                onStarsChange(containedStars)
+                val containedStars = stars.filter { it.second.value < maxHeight.value }
+                if (containedStars.size < stars.size) {
+                    onStarsChange(containedStars)
+                }
             }
             Star()
         }
