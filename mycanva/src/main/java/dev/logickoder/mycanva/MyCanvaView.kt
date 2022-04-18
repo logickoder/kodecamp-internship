@@ -9,7 +9,8 @@ import android.view.ViewConfiguration
 import kotlin.math.absoluteValue
 
 class MyCanvaView(context: Context) : View(context) {
-    private lateinit var frame: Rect
+    private val insets = listOf(50, 100)
+    private lateinit var frames: List<Rect>
 
     private val color: Int = Color.BLACK
     private val strokeWidth: Float = 12f
@@ -43,9 +44,10 @@ class MyCanvaView(context: Context) : View(context) {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        //create a rectangular frame around the drawing
-        val inset = 50
-        frame = Rect(inset, inset * 2, w - inset, h - inset * 2)
+        //create rectangular frames around the drawing
+        frames = insets.map { inset ->
+            Rect(inset, inset, w - inset, h - inset)
+        }
         bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also {
             drawingCanvas = Canvas(it)
         }
@@ -63,8 +65,10 @@ class MyCanvaView(context: Context) : View(context) {
             paths.forEach { path ->
                 drawPath(path, paint)
             }
-            // draw frame
-            drawRect(frame, paint)
+            // draw frames
+            frames.forEach { frame ->
+                drawRect(frame, paint)
+            }
         }
         bitmap?.let { canvas.drawBitmap(it, 0f, 0f, bitmapPaint) }
         canvas.restore()
@@ -124,6 +128,7 @@ class MyCanvaView(context: Context) : View(context) {
      * True if the current stroke is in drawing frame
      */
     private fun inFrame(): Boolean = with(motion) {
+        val frame = frames.last()
         first.let { it > frame.left + strokeWidth && it < frame.right - strokeWidth } &&
                 second.let { it > frame.top + strokeWidth && it < frame.bottom - strokeWidth }
     }
