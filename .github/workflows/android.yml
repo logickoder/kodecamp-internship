@@ -50,3 +50,8 @@ jobs:
         with:
           name: mycanva
           path: mycanva/build/outputs/apk/debug/mycanva-debug.apk
+      - name: Upload Shortstory APK
+        uses: actions/upload-artifact@v1
+        with:
+          name: short-story
+          path: short-story/build/outputs/apk/debug/short-story-debug.apk

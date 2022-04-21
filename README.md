@@ -13,3 +13,8 @@ when clicked plays animations
 A simple drawing app
 ### Screenshots
 ![mycanva](./screenshots/mycanva.png)
+
+## Task IV - Short Story
+A simple app showing animations with motion layout
+### Screenshots
+![short-story](./screenshots/short-story.png)
