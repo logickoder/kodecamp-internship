@@ -16,3 +16,4 @@ rootProject.name = "KodeCamp"
 include ':customized-notification'
 include ':mycanva'
 include ':short-story'
+include ':maps'
