@@ -18,3 +18,8 @@ A simple drawing app
 A simple app showing animations with motion layout
 ### Screenshots
 ![short-story](./screenshots/short-story.png)
+
+## Task V - Maps
+A simple app showing the different types of maps
+### Screenshots
+![maps](./screenshots/maps.png)
