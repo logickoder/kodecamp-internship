@@ -43,14 +43,20 @@ class MainActivity : ComponentActivity() {
                     }
                 )
 
+                val permissionState = rememberMultiplePermissionsState(
+                    permissions = listOf(
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    )
+                )
                 PermissionsRequired(
-                    multiplePermissionsState = rememberMultiplePermissionsState(
-                        permissions = listOf(
-                            android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                            android.Manifest.permission.ACCESS_FINE_LOCATION,
-                        )
-                    ),
-                    permissionsNotGrantedContent = { RequireLocation() },
+                    multiplePermissionsState = permissionState,
+                    permissionsNotGrantedContent = {
+                        LaunchedEffect(key1 = Unit) {
+                            permissionState.launchMultiplePermissionRequest()
+                        }
+                        RequireLocation()
+                    },
                     permissionsNotAvailableContent = { RequireLocation() },
                     content = {
                         val markers = remember {
@@ -58,7 +64,7 @@ class MainActivity : ComponentActivity() {
                         }
                         LaunchedEffect(key1 = Unit) {
                             locationClient.lastLocation.addOnSuccessListener {
-                                markers.add(it)
+                                if (it != null) markers.add(it)
                             }
                         }
                         MapContainer(

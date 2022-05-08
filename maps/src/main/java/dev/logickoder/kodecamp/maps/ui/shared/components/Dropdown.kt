@@ -1,5 +1,6 @@
 package dev.logickoder.kodecamp.maps.ui.shared.components
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -21,6 +22,7 @@ fun <T> DropdownField(
         onExpandedChange = { expanded = !expanded },
         content = {
             OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = currentItem.toString(),
                 onValueChange = {},
                 textStyle = LocalTextStyle.current.copy(fontWeight = FontWeight.Medium),
@@ -39,6 +41,7 @@ fun <T> DropdownField(
                 content = {
                     items.forEach { item ->
                         DropdownMenuItem(
+                            modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 expanded = false
                                 onItemClick(item)
