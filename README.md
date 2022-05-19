@@ -15,11 +15,21 @@ A simple drawing app
 ![mycanva](./screenshots/mycanva.png)
 
 ## Task IV - Short Story
+
 A simple app showing animations with motion layout
+
 ### Screenshots
+
 ![short-story](./screenshots/short-story.png)
 
 ## Task V - Maps
+
 A simple app showing the different types of maps
+
 ### Screenshots
+
 ![maps](./screenshots/maps.png)
+
+## Task VI - Geofence
+
+A simple app implementing geofencing in android
