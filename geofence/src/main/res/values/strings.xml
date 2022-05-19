@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Geofence</string>
+
+    <string-array name="welcome_text">
+        <item>Welcome to the geofencing game</item>
+        <item>You\'ll be required to input three (3) locations on the map</item>
+        <item>To win the game, you must visit those three locations</item>
+    </string-array>
+
+    <string name="start">Start</string>
+    <string name="next">Next</string>
+
+    <string name="location_select_info">Long click on a location to select it</string>
+    <string name="location_selected_info">%1$d location(s) selected</string>
+    <string name="clear_locations">Clear Locations</string>
 </resources>
