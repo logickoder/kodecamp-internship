@@ -12,5 +12,5 @@
 
     <string name="location_select_info">Long click on a location to select it</string>
     <string name="location_selected_info">%1$d location(s) selected</string>
-    <string name="clear_locations">Clear Locations</string>
+    <string name="clear">Clear</string>
 </resources>

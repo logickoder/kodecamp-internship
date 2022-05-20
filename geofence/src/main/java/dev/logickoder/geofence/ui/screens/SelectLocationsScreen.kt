@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.google.android.gms.maps.model.LatLng
@@ -17,8 +18,8 @@ const val MaxLocations = 3
 
 @Composable
 fun SelectLocationsScreen(
-    modifier: Modifier = Modifier,
     selectedLocations: Int,
+    modifier: Modifier = Modifier,
     onLocationSelected: (LatLng) -> Unit,
     clearLocations: () -> Unit,
     onNext: () -> Unit,
@@ -29,22 +30,32 @@ fun SelectLocationsScreen(
             Text(
                 text = stringResource(id = R.string.location_select_info)
             )
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = Padding),
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
                 content = {
                     Text(stringResource(R.string.location_selected_info, selectedLocations))
-                    Spacer(modifier = Modifier.width(Padding))
                     Button(
+                        modifier = Modifier.padding(horizontal = Padding / 4),
                         onClick = clearLocations,
                         content = {
-                            Text(stringResource(id = R.string.clear_locations))
+                            Text(stringResource(id = R.string.clear))
+                        }
+                    )
+                    Button(
+                        onClick = onNext,
+                        enabled = selectedLocations == MaxLocations,
+                        content = {
+                            Text(text = stringResource(id = R.string.next))
                         }
                     )
                 }
             )
+
             GoogleMap(
                 properties = MapProperties(
                     isBuildingEnabled = true,
@@ -54,14 +65,6 @@ fun SelectLocationsScreen(
                 onMapLongClick = { location ->
                     if (selectedLocations < MaxLocations)
                         onLocationSelected(location)
-                }
-            )
-            Spacer(modifier = Modifier.height(Padding))
-            Button(
-                onClick = onNext,
-                enabled = selectedLocations == MaxLocations,
-                content = {
-                    Text(text = stringResource(id = R.string.next))
                 }
             )
         }
