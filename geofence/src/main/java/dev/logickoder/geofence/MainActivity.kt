@@ -1,5 +1,8 @@
 package dev.logickoder.geofence
 
+import android.app.PendingIntent
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,16 +14,36 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import dev.logickoder.geofence.ui.screens.GeofenceScreen
 import dev.logickoder.geofence.ui.screens.SelectLocationsScreen
 import dev.logickoder.geofence.ui.screens.WelcomeScreen
 import dev.logickoder.geofence.ui.theme.KodeCampTheme
 import dev.logickoder.geofence.ui.theme.Padding
+import dev.logickoder.geofence.utils.getGeofencingRequest
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var geofencingClient: GeofencingClient
+
+    private val geofencePendingIntent: PendingIntent by lazy {
+        PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent(this, GeofenceBroadcastReceiver::class.java),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                else PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        geofencingClient = LocationServices.getGeofencingClient(this)
+
         setContent {
             KodeCampTheme {
                 val modifier = Modifier
@@ -47,9 +70,15 @@ class MainActivity : ComponentActivity() {
                                 locations += it
                             },
                             clearLocations = {
-                                locations.removeIf { true }
+                                while (locations.isNotEmpty())
+                                    locations.removeAt(0)
                             },
                             onNext = {
+                                geofencingClient.addGeofences(
+                                    locations.getGeofencingRequest(), geofencePendingIntent
+                                ).run {
+
+                                }
                                 ++screen
                             }
                         )
