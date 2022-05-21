@@ -7,12 +7,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.rememberCameraPositionState
 import dev.logickoder.geofence.R
 import dev.logickoder.geofence.ui.theme.Padding
+import dev.logickoder.geofence.utils.AppState
 
 const val MaxLocations = 3
 
@@ -61,7 +63,13 @@ fun SelectLocationsScreen(
                     isBuildingEnabled = true,
                     isTrafficEnabled = true,
                 ),
-                cameraPositionState = rememberCameraPositionState(),
+                cameraPositionState = rememberCameraPositionState(
+                    init = {
+                        AppState.location?.let {
+                            position = CameraPosition.fromLatLngZoom(it, 20f)
+                        }
+                    }
+                ),
                 onMapLongClick = { location ->
                     if (selectedLocations < MaxLocations)
                         onLocationSelected(location)

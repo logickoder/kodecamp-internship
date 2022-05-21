@@ -14,12 +14,14 @@ fun LatLng.createGeofence(
             longitude,
             radius,
         )
+        .setExpirationDuration(Geofence.NEVER_EXPIRE)
+        .setNotificationResponsiveness(1000)
         .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
         .build()
 }
 
 fun List<LatLng>.getGeofencingRequest(
-    radius: Float = 100f
+    radius: Float = 1000f
 ): GeofencingRequest {
     return GeofencingRequest.Builder().apply {
         setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
