@@ -4,6 +4,9 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.maps.model.LatLng
 
+const val GeofenceRadius = 100f
+const val ZoomLevel = 10f
+
 fun LatLng.createGeofence(
     radius: Float,
 ): Geofence {
@@ -15,13 +18,15 @@ fun LatLng.createGeofence(
             radius,
         )
         .setExpirationDuration(Geofence.NEVER_EXPIRE)
-        .setNotificationResponsiveness(1000)
-        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+        .setTransitionTypes(
+            Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_DWELL
+        )
+        .setLoiteringDelay(1000)
         .build()
 }
 
 fun List<LatLng>.getGeofencingRequest(
-    radius: Float = 1000f
+    radius: Float = GeofenceRadius
 ): GeofencingRequest {
     return GeofencingRequest.Builder().apply {
         setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)

@@ -3,7 +3,7 @@
 
     <string-array name="welcome_text">
         <item>Welcome to the geofencing game</item>
-        <item>You\'ll be required to input three (3) locations on the map</item>
+        <item>You\'ll be required to select three (3) locations on the map</item>
         <item>To win the game, you must visit those three locations</item>
     </string-array>
 
@@ -13,4 +13,7 @@
     <string name="location_select_info">Long click on a location to select it</string>
     <string name="location_selected_info">%1$d location(s) selected</string>
     <string name="clear">Clear</string>
+
+    <string name="next_location">Your next location is %1$s</string>
+    <string name="congratulations">Congratulations, You have visited all the locations</string>
 </resources>

@@ -18,14 +18,14 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                 return
             }
         }
-        val transition = event.geofenceTransition
-        if (transition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            // handle the transition
-            AppState.transitions = event.triggeringGeofences.onEach {
-                Log.e(TAG, it.toString())
+        when (val transition = event.geofenceTransition) {
+            Geofence.GEOFENCE_TRANSITION_ENTER, Geofence.GEOFENCE_TRANSITION_DWELL -> {
+                // handle the transition
+                AppState.transitions = event.triggeringGeofences
             }
-        } else {
-            Log.e(TAG, "Invalid geofence transition: $transition")
+            else -> {
+                Log.e(TAG, "Invalid geofence transition: $transition")
+            }
         }
     }
 

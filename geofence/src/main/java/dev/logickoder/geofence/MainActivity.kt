@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -23,20 +24,19 @@ import androidx.compose.ui.window.Dialog
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.GeofencingClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import dev.logickoder.geofence.ui.screens.GeofenceScreen
 import dev.logickoder.geofence.ui.screens.SelectLocationsScreen
 import dev.logickoder.geofence.ui.screens.WelcomeScreen
 import dev.logickoder.geofence.ui.theme.KodeCampTheme
 import dev.logickoder.geofence.ui.theme.Padding
-import dev.logickoder.geofence.utils.AppState
+import dev.logickoder.geofence.utils.AppState.location
 import dev.logickoder.geofence.utils.getGeofencingRequest
 
 class MainActivity : ComponentActivity() {
 
+    private lateinit var locationCallback: LocationCallback
     private lateinit var locationClient: FusedLocationProviderClient
     private lateinit var geofencingClient: GeofencingClient
     private val geofencePendingIntent: PendingIntent by lazy {
@@ -45,78 +45,109 @@ class MainActivity : ComponentActivity() {
             0,
             Intent(this, GeofenceBroadcastReceiver::class.java),
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            else PendingIntent.FLAG_UPDATE_CURRENT,
+                PendingIntent.FLAG_IMMUTABLE and PendingIntent.FLAG_UPDATE_CURRENT
+            else
+                PendingIntent.FLAG_UPDATE_CURRENT,
         )
     }
 
     @SuppressLint("MissingPermission")
-    @OptIn(ExperimentalPermissionsApi::class)
+    private fun initLocationServices() {
+        locationClient = LocationServices.getFusedLocationProviderClient(this)
+        geofencingClient = LocationServices.getGeofencingClient(this)
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                super.onLocationResult(result)
+                result.locations.forEach {
+                    location = LatLng(it.latitude, it.longitude)
+                }
+            }
+        }
+        locationClient.requestLocationUpdates(
+            LocationRequest.create().apply {
+                interval = 10_000
+                fastestInterval = 5_000
+                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            }, locationCallback, Looper.myLooper()!!
+        )
+        locationClient.lastLocation.addOnSuccessListener {
+            if (it != null) location = LatLng(it.latitude, it.longitude)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun registerGeofence(locations: List<LatLng>) {
+        geofencingClient.removeGeofences(geofencePendingIntent).addOnCompleteListener {
+            Log.d(TAG, "Removed old geofence")
+            geofencingClient.addGeofences(
+                locations.getGeofencingRequest(), geofencePendingIntent
+            ).addOnSuccessListener {
+                Log.d(TAG, "Added geofence successfully")
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        locationClient = LocationServices.getFusedLocationProviderClient(this)
-        geofencingClient = LocationServices.getGeofencingClient(this)
-
+        initLocationServices()
         setContent {
             KodeCampTheme {
+                MainContent()
+            }
+        }
+    }
 
-                @Composable
-                fun RequireLocation() = Dialog(
-                    onDismissRequest = { /*TODO*/ },
-                    content = {
-                        Text("Location Permission Required")
+    @OptIn(ExperimentalPermissionsApi::class)
+    @Composable
+    fun MainContent() {
+        @Composable
+        fun RequireLocation() = Dialog(
+            onDismissRequest = { /*TODO*/ },
+            content = {
+                Text("Location Permission Required")
+            }
+        )
+
+        val permissionState = rememberMultiplePermissionsState(
+            permissions = listOf(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            )
+        )
+        PermissionsRequired(
+            multiplePermissionsState = permissionState,
+            permissionsNotGrantedContent = {
+                LaunchedEffect(key1 = Unit) {
+                    permissionState.launchMultiplePermissionRequest()
+                }
+                RequireLocation()
+            },
+            permissionsNotAvailableContent = { RequireLocation() },
+            content = {
+                val locations = remember { mutableStateListOf<LatLng>() }
+                var screen by remember { mutableStateOf(0) }
+                val screens = screens(
+                    locations = locations,
+                    onScreenChange = {
+                        screen = it
                     }
                 )
 
-                val permissionState = rememberMultiplePermissionsState(
-                    permissions = listOf(
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                    )
-                )
-                PermissionsRequired(
-                    multiplePermissionsState = permissionState,
-                    permissionsNotGrantedContent = {
-                        LaunchedEffect(key1 = Unit) {
-                            permissionState.launchMultiplePermissionRequest()
-                        }
-                        RequireLocation()
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = {
+                                Text(stringResource(R.string.app_name))
+                            }
+                        )
                     },
-                    permissionsNotAvailableContent = { RequireLocation() },
                     content = {
-                        val locations = remember { mutableStateListOf<LatLng>() }
-                        var screen by remember { mutableStateOf(0) }
-                        val screens = screens(
-                            locations = locations,
-                            onScreenChange = {
-                                screen = it
-                            }
-                        )
-
-                        LaunchedEffect(key1 = Unit) {
-                            locationClient.lastLocation.addOnSuccessListener {
-                                if (it != null)
-                                    AppState.location = LatLng(it.latitude, it.longitude)
-                            }
-                        }
-
-                        Scaffold(
-                            topBar = {
-                                TopAppBar(
-                                    title = {
-                                        Text(stringResource(R.string.app_name))
-                                    }
-                                )
-                            },
-                            content = {
-                                screens[screen].invoke()
-                            }
-                        )
+                        screens[screen].invoke()
                     }
                 )
             }
-        }
+        )
     }
 
     @Composable
@@ -166,26 +197,20 @@ class MainActivity : ComponentActivity() {
                             locations.removeAt(0)
                     },
                     onNext = {
+                        registerGeofence(locations)
+                        locations.forEach {
+                            Log.d(TAG, "screens: $it")
+                        }
                         onScreenChange(2)
                     }
                 )
             },
             {
-                LaunchedEffect(Unit) {
-                    geofencingClient.addGeofences(
-                        locations.getGeofencingRequest(), geofencePendingIntent
-                    ).addOnSuccessListener {
-                        Log.d(TAG, "Geofencing successfully added")
-                    }
-                    locations.forEach {
-                        Log.d(TAG, "screens: $it")
-                    }
-                }
                 GeofenceScreen(
                     modifier = modifier,
                     locations = locations,
-                    updateLocations = { updatedLocations ->
-                        locations.removeAll { it !in updatedLocations }
+                    processedLocations = { updatedLocations ->
+                        locations.removeAll { it in updatedLocations }
                     }
                 )
             }

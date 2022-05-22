@@ -15,6 +15,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import dev.logickoder.geofence.R
 import dev.logickoder.geofence.ui.theme.Padding
 import dev.logickoder.geofence.utils.AppState
+import dev.logickoder.geofence.utils.ZoomLevel
 
 const val MaxLocations = 3
 
@@ -66,14 +67,14 @@ fun SelectLocationsScreen(
                 cameraPositionState = rememberCameraPositionState(
                     init = {
                         AppState.location?.let {
-                            position = CameraPosition.fromLatLngZoom(it, 20f)
+                            position = CameraPosition.fromLatLngZoom(it, ZoomLevel)
                         }
                     }
                 ),
                 onMapLongClick = { location ->
                     if (selectedLocations < MaxLocations)
                         onLocationSelected(location)
-                }
+                },
             )
         }
     )
